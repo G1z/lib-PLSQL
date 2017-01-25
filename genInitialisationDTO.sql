@@ -1,4 +1,4 @@
-/* Formatted on 23/01/2017 17:55:59 (QP5 v5.287) */
+/* Formatted on 25/01/2017 12:23:42 (QP5 v5.287) */
 DECLARE
    objet             VARCHAR2 (30) := 'DEMANDE_MISSION';
    ret               VARCHAR2 (10000);
@@ -76,10 +76,29 @@ DECLARE
                       FROM all_coll_types
                      WHERE TYPE_NAME = objet AND owner = own)
          LOOP
-            /*IF r1.ELEM_TYPE_OWNER IS NOT NULL
+            IF r1.ELEM_TYPE_OWNER IS NOT NULL -- EST UN TYPE LISTE
             THEN
-               w_header := w_header || 'A traiter : ' || objet || CHR (13) || CHR (10);
-            ELSE*/
+               ret :=
+                     descriptionObjets (r1.ELEM_TYPE_NAME,
+                                        own,
+                                        w_afficherOwner,
+                                        w_header,
+                                        w_body)
+                  || ret;
+               w_header := w_header || 'o_' || objet || ' ';
+                w_declare := 'o_' || objet || ' := ';
+
+               IF w_afficherOwner
+               THEN
+                  w_header := w_header || own || '.';
+                  w_declare := w_declare || own || '.';
+               END IF;
+
+               w_header := w_header || objet || ';' || CHR (13) || CHR (10);
+               w_declare := w_declare || objet ||  '();' || CHR (13) || CHR (10);
+               --w_declare := w_declare || objet ||  '.EXTEND;' || CHR (13) || CHR (10);
+               --w_declare := w_declare || objet ||  '(1) := ' || CHR (13) || CHR (10);
+            ELSE
                w_header := w_header || 'o_' || objet || ' ';
 
                IF w_afficherOwner
@@ -88,11 +107,10 @@ DECLARE
                END IF;
 
                w_header := w_header || objet || ';' || CHR (13) || CHR (10);
-            --END IF;
+            END IF;
          END LOOP;
       ELSE
-         RETURN 'NOT FOUND : ' || objet;
-      --DBMS_OUTPUT.put_line ('NOT FOUND : ' || objet);
+            DBMS_OUTPUT.put_line ('NOT FOUND : ' || objet);
       END IF;
 
       w_body := w_body || w_declare;
